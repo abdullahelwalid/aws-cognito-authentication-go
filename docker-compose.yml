@@ -1,0 +1,19 @@
+services:
+  api:
+    build: ./
+    volumes:
+      - ./:/app
+    ports:
+      - 3000:8000
+  DB:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+        - data:/var/lib/postgresql/data
+    env_file:
+        - ./.env
+
+volumes:
+  data:
