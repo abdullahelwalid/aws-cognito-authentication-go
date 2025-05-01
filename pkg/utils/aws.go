@@ -70,6 +70,18 @@ func (c *CognitoAuth) Login(email string, password string) (*cognitoidentityprov
 	return resp, err
 }
 
+func (c *CognitoAuth) RefreshToken(refreshToken string, username string) (*cognitoidentityprovider.InitiateAuthOutput, error) {
+	client := cognitoidentityprovider.NewFromConfig(c.Cfg)
+	authParams := map[string]string{"REFRESH_TOKEN": refreshToken, "SECRET_HASH": computeSecretHash(c.AppClientSecret, username, c.AppClientID)}
+	signInInput := &cognitoidentityprovider.InitiateAuthInput{
+		AuthFlow: "REFRESH_TOKEN",
+		ClientId: &c.AppClientID,
+		AuthParameters: authParams,
+	}
+	resp, err := client.InitiateAuth(context.TODO(), signInInput)
+	return resp, err
+}
+
 func (c *CognitoAuth) ConfirmSignUp(email string, code string) error {
 	client := cognitoidentityprovider.NewFromConfig(c.Cfg)
 	confirmSignUpInput := &cognitoidentityprovider.ConfirmSignUpInput{

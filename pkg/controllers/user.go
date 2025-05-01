@@ -80,3 +80,28 @@ func Login(c *fiber.Ctx) error {
 	}
 	return c.JSON(resp)
 }
+
+func RefreshToken(c *fiber.Ctx) error {
+	type FormData struct {
+		Username string `form:"email"`
+		RefreshToken string `form:"refreshToken"`	
+	}
+	var data FormData
+		if err := c.BodyParser(&data); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Cannot parse form data",
+			})
+		}
+	auth, err := utils.InitAWSConfig()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})	}
+	resp, err := auth.RefreshToken(data.RefreshToken, data.Username)
+	if err != nil {
+		c.SendStatus(401)
+		return c.JSON(fiber.Map{"error": "Invalid credentials"})
+	}
+	c.SendStatus(400)
+	return c.JSON(fiber.Map{"accessToken": resp.AuthenticationResult.AccessToken})
+}
